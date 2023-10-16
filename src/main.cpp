@@ -64,17 +64,14 @@ int main(void) {
 	auto cSrc = ARAP::Core::Contour::Contour(maskResampled);
 	auto cRef = ARAP::Core::Contour::Contour(maskRef);
 
-	//cSrc.Print();
-
 	ARAP::Transformers::ICPTransformer transformer;
 
 	transformer.estimateTransform(cSrc, cRef, std::vector<ARAP::Transformers::PMatch>());
 	auto cTrans = transformer.applyTransform(cSrc);
 
-	//cTrans.Print();
-
-	//cRef.Print();
-	
+	cSrc.Write("../source.txt");
+	cRef.Write("../reference.txt");
+	cTrans.Write("../transformed.txt");
 	
 	return EXIT_SUCCESS;
 }

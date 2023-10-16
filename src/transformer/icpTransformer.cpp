@@ -20,6 +20,13 @@ void ICPTransformer::estimateTransform(const Contour& moving, const Contour& fix
 
 	m_transform = TransformType::New();
 	m_transform->SetIdentity();
+	PhysicalPointSetType::PointType movingCOM = moving.ComputeCenterOfMass();
+	PhysicalPointSetType::PointType fixedCOM = fixed.ComputeCenterOfMass();
+	TransformType::ParametersType initialParams = m_transform->GetParameters();//(12);
+	initialParams[9] = fixedCOM[0] - movingCOM[0];        
+	initialParams[10] = fixedCOM[1] - movingCOM[1];        
+	initialParams[11] = fixedCOM[2] - movingCOM[2];
+	m_transform->SetParameters(initialParams);        
 
 	itk::SmartPointer<MetricType> metric = MetricType::New();
 	metric->SetMovingPointSet(moving.GetPhysicalPoints());

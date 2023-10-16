@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
 #include "core/contour.hpp"
 
@@ -125,6 +128,30 @@ ImagePointSetType::PointType Contour::GetIndexAt(unsigned int i) const {
 	return pt;
 }   
 
+PhysicalPointSetType::PointType Contour::ComputeCenterOfMass() const {
+	PhysicalPointSetType::PointType centerOfMass;
+	centerOfMass.Fill(0.0);
+
+	PhysicalPointSetType::PointsContainerConstIterator it = m_points->GetPoints()->Begin();
+
+	unsigned int numPoints = 0;
+	while (it != m_points->GetPoints()->End()) {
+		centerOfMass[0] += it.Value()[0];
+		centerOfMass[1] += it.Value()[1];
+		centerOfMass[2] += it.Value()[2];
+		++it;
+		numPoints++;
+	}
+
+	if (numPoints > 0) {
+		centerOfMass[0] /= numPoints;
+		centerOfMass[1] /= numPoints;
+		centerOfMass[2] /= numPoints;
+	}
+
+	return centerOfMass;
+}
+
 void Contour::Print() const {
 	using PointType = PhysicalPointSetType::PointType;
 	using IndexType = ImagePointSetType::PointType;
@@ -135,4 +162,25 @@ void Contour::Print() const {
 		std::cout << "Point " << i << " x: " << pt[0] << " y: " << pt[1] << " z: " << pt[2];
 		std::cout << " i: " << index[0] << " j: " << index[1] << " k: " << index[2] << std::endl;
 	}
+}
+
+void Contour::Write(const std::string& filename) const {
+	std::ofstream outStream(filename);
+
+	if (!outStream.is_open()) {
+		std::cerr << "Error: Unable to open output file: " << filename << std::endl;
+		return;
+	}
+
+	PhysicalPointSetType::PointsContainerConstIterator it = m_points->GetPoints()->Begin();
+
+	while (it != m_points->GetPoints()->End()) {
+		PhysicalPointSetType::PointType pt = it.Value();
+		std::stringstream ss;
+		ss << std::fixed << std::setprecision(8) << pt[0] << " " << std::fixed << std::setprecision(8) << pt[1] << " " << std::fixed << std::setprecision(8) << pt[2];
+		outStream << ss.str() << std::endl;
+		++it;
+	}
+
+	outStream.close();
 }

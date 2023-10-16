@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <array>
+#include <string>
 #include <cstdint>
 
 #include "itkImage.h"
@@ -40,7 +41,9 @@ public:
 	itk::SmartPointer<BinaryMask> GetMask() const;
 	PhysicalPointSetType::PointType GetPhysicalPointAt(unsigned int i) const;
 	ImagePointSetType::PointType GetIndexAt(unsigned int i) const;
+	PhysicalPointSetType::PointType ComputeCenterOfMass() const;
 	void Print() const;
+	void Write(const std::string& filename) const;
 };
 
 }
