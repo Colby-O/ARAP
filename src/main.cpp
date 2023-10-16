@@ -2,11 +2,14 @@
 #include <vector>
 #include <array>
 #include <cstdint>
+
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkPointSet.h"
+
 #include "core/image.hpp"
 #include "core/contour.hpp"
+#include "transformer/icpTransformer.hpp"
 
 int main(void) {
 	
@@ -34,32 +37,44 @@ int main(void) {
 		return EXIT_FAILURE;  
 	}
 
-//
-//    using BinaryMask = itk::Image<std::uint8_t, 3>;
-//    
-//    auto maskSrc = ARAP::Core::Image::load<std::uint8_t, 3>("../test_mask_1.nrrd");
-//    auto maskRef = ARAP::Core::Image::load<std::uint8_t, 3>("../test_mask_2.nrrd");
-//
-//    auto maskResampled ARAP::Core::Image::resample<uint8_t, 3>(maskSrc, maskRef);
-//
-//    using MaskWriterType = itk::ImageFileWriter<BinaryMask>;
-//    itk::SmartPointer<MaskWriterType> maskWriter = MaskWriterType::New();
-//
-//    maskWriter->SetFileName("mask_resmapled.nii.gz");
-//    maskWriter->SetInput(resampled);
-//
-//    try
-//    {
-//        maskWriter->Update();
-//    }
-//    catch (const itk::ExceptionObject& exp)
-//    {
-//        exp.Print(std::cerr);
-//        return EXIT_FAILURE;  
-//    }
-//
-//    auto cSrc = ARAP::Core::Contour::Contour(maskResampled);
-//    auto cRef = ARAP::Core::Contour::Contour(maskRef);
+
+	using BinaryMask = itk::Image<std::uint8_t, 3>;
+	
+	auto maskSrc = ARAP::Core::Image::load<std::uint8_t, 3>("../test_mask_1.nrrd");
+	auto maskRef = ARAP::Core::Image::load<std::uint8_t, 3>("../test_mask_2.nrrd");
+
+	auto maskResampled = ARAP::Core::Image::resample<uint8_t, 3>(maskSrc, maskRef);
+
+	using MaskWriterType = itk::ImageFileWriter<BinaryMask>;
+	itk::SmartPointer<MaskWriterType> maskWriter = MaskWriterType::New();
+
+	maskWriter->SetFileName("mask_resmapled.nii.gz");
+	maskWriter->SetInput(maskResampled);
+
+	try
+	{
+		maskWriter->Update();
+	}
+	catch (const itk::ExceptionObject& exp)
+	{
+		exp.Print(std::cerr);
+		return EXIT_FAILURE;  
+	}
+
+	auto cSrc = ARAP::Core::Contour::Contour(maskResampled);
+	auto cRef = ARAP::Core::Contour::Contour(maskRef);
+
+	//cSrc.Print();
+
+	ARAP::Transformers::ICPTransformer transformer;
+
+	transformer.estimateTransform(cSrc, cRef, std::vector<ARAP::Transformers::PMatch>());
+	auto cTrans = transformer.applyTransform(cSrc);
+
+	//cTrans.Print();
+
+	//cRef.Print();
+	
 	
 	return EXIT_SUCCESS;
 }

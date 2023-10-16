@@ -18,28 +18,35 @@ void ICPTransformer::estimateTransform(const Contour& moving, const Contour& fix
 	
 	//auto correspondences = findCorrespondences(moving, fixed);
 
-	itk::SmartPointer<TransformType> transform = TransformType::New();
-	transform->SetIdentity();
+	m_transform = TransformType::New();
+	m_transform->SetIdentity();
 
 	itk::SmartPointer<MetricType> metric = MetricType::New();
 	metric->SetMovingPointSet(moving.GetPhysicalPoints());
 	metric->SetFixedPointSet(fixed.GetPhysicalPoints());
 	//metric->SetCorrespondences(correspondences);
 
+	OptimizerType::ScalesType scales(m_transform->GetNumberOfParameters());
+	scales.Fill(0.01);
 	itk::SmartPointer<OptimizerType> optimizer = OptimizerType::New();
-	optimizer->SetUseCostFunctionGradient(false);
+	optimizer->SetScales(scales);
+	optimizer->SetNumberOfIterations(1000);
+	optimizer->SetValueTolerance(1e-5);
+	optimizer->SetGradientTolerance(1e-5);
+	optimizer->SetEpsilonFunction(1e-6);
+	optimizer->SetUseCostFunctionGradient(true);
 
 	itk::SmartPointer<RegistrationType> registeration = RegistrationType::New();
+	registeration->SetInitialTransformParameters(m_transform->GetParameters());
 	registeration->SetMetric(metric);
 	registeration->SetOptimizer(optimizer);
-	registeration->SetTransform(transform);
+	registeration->SetTransform(m_transform);
 	registeration->SetMovingPointSet(moving.GetPhysicalPoints());
 	registeration->SetFixedPointSet(fixed.GetPhysicalPoints());
 
 	try {
 		registeration->Update();
-		transform->SetParameters(transform->GetParameters());
-		m_transform = transform;    
+		m_transform->SetParameters(m_transform->GetParameters());
 	} catch (itk::ExceptionObject& exp) {
 		exp.Print(std::cerr);
 		m_transform = nullptr;
@@ -57,6 +64,7 @@ Contour ICPTransformer::applyTransform(const Contour& in) {
 	while (it != inputPointSet->GetPoints()->End()) {
 		PhysicalPointSetType::PointType origPt = it.Value();
 		PhysicalPointSetType::PointType newPt = m_transform->TransformPoint(origPt);
+		std::cout << "Old: " << origPt[0] << " New: " << newPt[0] << std::endl;
 		transformedPointSet->GetPoints()->InsertElement(it->Index(), newPt);
 		++it;
 	}

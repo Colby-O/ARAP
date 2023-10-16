@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "core/contour.hpp"
 
 using namespace ARAP::Core::Contour;
@@ -122,3 +124,15 @@ ImagePointSetType::PointType Contour::GetIndexAt(unsigned int i) const {
 	m_indices->GetPoint(i, &pt);
 	return pt;
 }   
+
+void Contour::Print() const {
+	using PointType = PhysicalPointSetType::PointType;
+	using IndexType = ImagePointSetType::PointType;
+
+	for (int i = 0; i < getNumberOfPoints(); ++i) {
+		auto pt = GetPhysicalPointAt(i);
+		auto index = GetIndexAt(i);
+		std::cout << "Point " << i << " x: " << pt[0] << " y: " << pt[1] << " z: " << pt[2];
+		std::cout << " i: " << index[0] << " j: " << index[1] << " k: " << index[2] << std::endl;
+	}
+}

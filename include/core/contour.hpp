@@ -40,6 +40,7 @@ public:
 	itk::SmartPointer<BinaryMask> GetMask() const;
 	PhysicalPointSetType::PointType GetPhysicalPointAt(unsigned int i) const;
 	ImagePointSetType::PointType GetIndexAt(unsigned int i) const;
+	void Print() const;
 };
 
 }
